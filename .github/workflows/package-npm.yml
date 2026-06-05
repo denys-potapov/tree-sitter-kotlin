@@ -15,10 +15,6 @@ on:
         description: The NodeJS version
         default: ${{vars.NODE_VERSION || '22'}}
         type: string
-      ubuntu-version:
-        description: The version of the Ubuntu runner image
-        default: ${{vars.UBUNTU_VERSION || '22.04'}}
-        type: string
       generate:
         description: Generate the parser artifacts
         default: false
@@ -43,17 +39,17 @@ jobs:
     strategy:
       matrix:
         os:
-          - "ubuntu-${{inputs.ubuntu-version}}"
+          - ubuntu-latest
           - windows-latest
           - macos-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set up NodeJS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           cache: npm
-          node-version: ${{inputs.node-version}}
+          node-version: ${{vars.NODE_VERSION || '22'}}
       - name: Install dependencies
         run: npm i --omit peer --omit optional
       - name: Regenerate parser
@@ -78,7 +74,7 @@ jobs:
       - name: Build arm64 binary
         run: npm x -- prebuildify --arch arm64 -t 20.9.0
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: prebuilds/**
           name: prebuilds-${{runner.os}}
@@ -87,21 +83,18 @@ jobs:
   package:
     name: Package tarball npm
     needs: [build_node]
-    runs-on: ubuntu-${{inputs.ubuntu-version}}
-    environment:
-      name: ${{inputs.environment-name}}
-      # url: https://www.npmjs.com/package/${{inputs.package-name}}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set up NodeJS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           cache: npm
           node-version: ${{inputs.node-version}}
           registry-url: https://registry.npmjs.org/
       - name: Download binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: prebuilds
           pattern: prebuilds-*
@@ -111,7 +104,7 @@ jobs:
       - name: Create package tarball
         run: npm pack
       - name: Upload package tarball
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: "*.tgz"
           name: package-tarball
