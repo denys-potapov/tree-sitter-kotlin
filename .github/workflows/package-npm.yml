@@ -15,10 +15,6 @@ on:
         description: The NodeJS version
         default: ${{vars.NODE_VERSION || '22'}}
         type: string
-      emscripten-version:
-        description: The Emscripten version
-        default: ${{vars.EMSCRIPTEN_VERSION || '3.1.64'}}
-        type: string
       ubuntu-version:
         description: The version of the Ubuntu runner image
         default: ${{vars.UBUNTU_VERSION || '22.04'}}
@@ -41,47 +37,6 @@ defaults:
     shell: bash
 
 jobs:
-  build_wasm:
-    name: Build Wasm binaries
-    runs-on: ubuntu-${{inputs.ubuntu-version}}
-    continue-on-error: true
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up NodeJS
-        uses: actions/setup-node@v4
-        with:
-          cache: npm
-          node-version: ${{inputs.node-version}}
-      - name: Set up Emscripten
-        uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
-        with:
-          version: ${{inputs.emscripten-version}}
-      - name: Install dependencies
-        run: npm i --omit peer --omit optional
-      - name: Regenerate parser
-        if: ${{inputs.generate}}
-        run: |
-          while read -r grammar; do
-            grammar_dir=$(dirname "$grammar")
-            cd "$grammar_dir"
-            npm x -- tree-sitter generate
-            cd - > /dev/null
-          done < <(find . -name grammar.js -not -path './node_modules/*' -not -path './.build/*')
-        env:
-          TREE_SITTER_ABI_VERSION: ${{inputs.abi-version}}
-      - name: Build Wasm binaries
-        run: |-
-          while read -r grammar; do
-            npm x -- tree-sitter build-wasm "${grammar%/grammar.js}"
-          done < <(find . -name grammar.js -not -path './node_modules/*')
-      - name: Upload binaries
-        uses: actions/upload-artifact@v4
-        with:
-          path: "*.wasm"
-          name: prebuilds-Wasm
-          retention-days: 2
-
   build_node:
     name: Build NodeJS binaries on ${{matrix.os}}
     runs-on: ${{matrix.os}}
@@ -131,7 +86,7 @@ jobs:
 
   package:
     name: Package tarball npm
-    needs: [build_wasm, build_node]
+    needs: [build_node]
     runs-on: ubuntu-${{inputs.ubuntu-version}}
     environment:
       name: ${{inputs.environment-name}}
@@ -153,9 +108,6 @@ jobs:
           merge-multiple: true
       - name: Check binaries
         run: tree prebuilds
-      - name: Move Wasm binaries to root
-        continue-on-error: true
-        run: mv -v prebuilds/*.wasm .
       - name: Create package tarball
         run: npm pack
       - name: Upload package tarball
