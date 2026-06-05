@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ["*"]
     paths:
       - grammar.js
       - src/**
@@ -41,3 +42,10 @@ jobs:
           test-node: true
           generate: false
           test-rust: true
+
+  package:
+    name: Build package
+    needs: test
+    uses: ./.github/workflows/package-npm.yml
+    # secrets:
+    #   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
