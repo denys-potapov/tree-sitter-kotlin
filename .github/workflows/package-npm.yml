@@ -27,15 +27,17 @@ jobs:
           node-version: ${{vars.NODE_VERSION || '22'}}
       - name: Install dependencies
         run: npm i --omit peer --omit optional
+      - name: Build x64 binary
+        run: npm x -- prebuildify --arch x64
       - name: Set up cross-compilation
         if: runner.os == 'Linux'
+        # this step should go after x86 buid,
+        # as after installing arm64 on linux x64 build fails
         run: |-
           sudo apt-get update
           sudo apt-get install g++-aarch64-linux-gnu
           printf '%s\n' >> "$GITHUB_ENV" \
             'CC=aarch64-linux-gnu-gcc' 'CXX=aarch64-linux-gnu-g++'
-      - name: Build x64 binary
-        run: npm x -- prebuildify --arch x64
       - name: Build arm64 binary
         run: npm x -- prebuildify --arch arm64
       - name: Test Node bindings
