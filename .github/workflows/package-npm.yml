@@ -26,7 +26,8 @@ jobs:
           cache: npm
           node-version: ${{vars.NODE_VERSION || '22'}}
       - name: Install dependencies
-        run: npm i --omit peer --omit optional
+        # ignore preinstall script, so node-gyp-build is not trigerred
+        run: npm i --omit peer --omit optional --ignore-scripts
       - name: Build x64 binary
         run: npm x -- prebuildify --arch x64
       - name: Set up cross-compilation
