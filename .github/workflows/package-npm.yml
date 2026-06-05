@@ -1,33 +1,5 @@
 name: Package tarball (npm)
 
-on:
-  workflow_call:
-    inputs:
-      package-name:
-        description: The name of the package
-        default: ${{github.event.repository.name}}
-        type: string
-      environment-name:
-        description: The name of the environment
-        default: npm
-        type: string
-      node-version:
-        description: The NodeJS version
-        default: ${{vars.NODE_VERSION || '22'}}
-        type: string
-      generate:
-        description: Generate the parser artifacts
-        default: false
-        type: boolean
-      abi-version:
-        description: The tree-sitter ABI version
-        default: "14"
-        type: string
-    # secrets:
-    #   NODE_AUTH_TOKEN:
-    #     description: An authentication token for npm
-    #     required: true
-
 defaults:
   run:
     shell: bash
@@ -45,25 +17,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Set up NodeJS
+      - name: Set up Node
         uses: actions/setup-node@v6
         with:
           cache: npm
           node-version: ${{vars.NODE_VERSION || '22'}}
       - name: Install dependencies
         run: npm i --omit peer --omit optional
-      - name: Regenerate parser
-        if: ${{inputs.generate}}
-        shell: bash
-        run: |
-          while read -r grammar; do
-            grammar_dir=$(dirname "$grammar")
-            cd "$grammar_dir"
-            npm x -- tree-sitter generate
-            cd - > /dev/null
-          done < <(find . -name grammar.js -not -path './node_modules/*' -not -path './.build/*')
       - name: Build x64 binary
-        run: npm x -- prebuildify --arch x64 -t 20.9.0
+        run: npm x -- prebuildify --arch x64
       - name: Set up cross-compilation
         if: runner.os == 'Linux'
         run: |-
@@ -72,7 +34,7 @@ jobs:
           printf '%s\n' >> "$GITHUB_ENV" \
             'CC=aarch64-linux-gnu-gcc' 'CXX=aarch64-linux-gnu-g++'
       - name: Build arm64 binary
-        run: npm x -- prebuildify --arch arm64 -t 20.9.0
+        run: npm x -- prebuildify --arch arm64
       - name: Upload binaries
         uses: actions/upload-artifact@v7
         with:
@@ -87,12 +49,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Set up NodeJS
+      - name: Set up Node
         uses: actions/setup-node@v6
         with:
           cache: npm
-          node-version: ${{inputs.node-version}}
-          registry-url: https://registry.npmjs.org/
+          node-version: ${{vars.NODE_VERSION || '22'}}
       - name: Download binaries
         uses: actions/download-artifact@v8
         with:

@@ -56,5 +56,3 @@ jobs:
     name: Build package
     needs: test
     uses: ./.github/workflows/package-npm.yml
-    # secrets:
-    #   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
