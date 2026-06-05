@@ -4,23 +4,7 @@ on:
   push:
     branches: [main]
     tags: ["*"]
-    paths:
-      - grammar.js
-      - src/**
-      - test/**
-      - bindings/**
-      - binding.gyp
-      - package.json
-      - tree-sitter.json
   pull_request:
-    paths:
-      - grammar.js
-      - src/**
-      - test/**
-      - bindings/**
-      - binding.gyp
-      - package.json
-      - tree-sitter.json
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -29,30 +13,8 @@ concurrency:
 jobs:
   test:
     name: Test parser
-    runs-on: ${{matrix.os}}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
-          - macos-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-      - name: Set up tree-sitter
-        uses: tree-sitter/setup-action/cli@eeb902ac2f1be576edc296309872cf476a209b7f # v2
-      - name: Run parser tests
-        run: tree-sitter test
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          cache: npm
-          node-version: ${{vars.NODE_VERSION || '22'}}
-      - name: Test Node bindings
-        run: npm i --omit peer --omit optional && node --test bindings/node/*_test.js
+    uses: ./.github/workflows/test.yml
 
   package:
     name: Build package
-    needs: test
     uses: ./.github/workflows/package-npm.yml

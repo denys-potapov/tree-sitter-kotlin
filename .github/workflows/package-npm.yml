@@ -29,6 +29,8 @@ jobs:
         run: npm i --omit peer --omit optional
       - name: Build x64 binary
         run: npm x -- prebuildify --arch x64
+      - name: Test Node bindings
+        run: node --test bindings/node/*_test.js
       - name: Set up cross-compilation
         if: runner.os == 'Linux'
         run: |-
