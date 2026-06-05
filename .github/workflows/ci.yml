@@ -10,6 +10,8 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - package.json
+      - tree-sitter.json
   pull_request:
     paths:
       - grammar.js
@@ -17,6 +19,8 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - package.json
+      - tree-sitter.json
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
