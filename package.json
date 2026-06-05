@@ -7,7 +7,9 @@
   "scripts": {
     "test": "tree-sitter test",
     "install": "node-gyp-build",
-    "generate": "tree-sitter generate",
+    "generate": "tree-sitter generate --abi 14",
+    "clean:node": "rm binding.gyp & rm -rf bindings/node/",
+    "init": "tree-sitter init --update",
     "parse": "tree-sitter parse",
     "build-wasm": "tree-sitter build --wasm",
     "playground": "tree-sitter playground",
@@ -58,7 +60,7 @@
     }
   },
   "devDependencies": {
-    "tree-sitter-cli": "^0.24.4",
+    "tree-sitter-cli": "0.24.4",
     "prebuildify": "^6.0.0",
     "vitest": "^3.0.0"
   },
