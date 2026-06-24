@@ -15,7 +15,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
+          - windows-2022
           - macos-latest
     steps:
       - name: Checkout repository
@@ -32,14 +32,16 @@ jobs:
         run: npm x -- prebuildify --arch x64
       - name: Set up cross-compilation
         if: runner.os == 'Linux'
-        # this step should go after x86 buid,
-        # as after installing arm64 on linux x64 build fails
+        # this step should go after x86 build,
+        # we set env variables for build arm under linux
         run: |-
           sudo apt-get update
           sudo apt-get install g++-aarch64-linux-gnu
           printf '%s\n' >> "$GITHUB_ENV" \
             'CC=aarch64-linux-gnu-gcc' 'CXX=aarch64-linux-gnu-g++'
       - name: Build arm64 binary
+        # arm64 on windows needs separate testing (disable it for now)
+        if: runner.os != 'Windows'
         run: npm x -- prebuildify --arch arm64
       - name: Test Node bindings
         run: node --test bindings/node/*_test.js
