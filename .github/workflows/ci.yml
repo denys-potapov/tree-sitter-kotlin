@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  pull_request:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test parser
+    uses: ./.github/workflows/test.yml
+
+  package:
+    name: Build package
+    uses: ./.github/workflows/package-npm.yml
